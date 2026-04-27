@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+
+<style>
+
+body{
+margin:0;
+background:transparent;
+font-family:Segoe UI, Arial;
+}
+
+.container{
+
+display:flex;
+align-items:center;
+gap:15px;
+
+background:linear-gradient(90deg,#0f0f0f,#1b1b1b);
+
+padding:12px 20px;
+border-radius:30px;
+
+color:white;
+
+box-shadow:0 0 15px rgba(0,0,0,0.5);
+}
+
+.levelCircle{
+
+width:48px;
+height:48px;
+
+border-radius:50%;
+
+border:5px solid #ff5500;
+
+display:flex;
+align-items:center;
+justify-content:center;
+
+font-weight:bold;
+font-size:18px;
+
+color:#ff5500;
+}
+
+.elo{
+
+font-size:26px;
+font-weight:bold;
+
+letter-spacing:1px;
+}
+
+.stats{
+
+font-size:15px;
+}
+
+.win{
+
+color:#00ff88;
+font-weight:bold;
+}
+
+.loss{
+
+color:#ff3b3b;
+font-weight:bold;
+}
+
+.streak{
+
+font-size:14px;
+opacity:.9;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="levelCircle" id="level">-</div>
+
+<div class="elo" id="elo">---</div>
+
+<div class="stats">
+
+<span class="win">W: <span id="wins">0</span></span>
+
+&nbsp;
+
+<span class="loss">L: <span id="losses">0</span></span>
+
+</div>
+
+<div class="streak">
+
+Streak: <span id="streak">-</span>
+
+</div>
+
+</div>
+
+<script>
+
+const API_KEY="COLOQUE_SUA_API_KEY";
+const NICK="Moviments";
+
+async function atualizar(){
+
+const playerReq = await fetch(`https://open.faceit.com/data/v4/players?nickname=${NICK}`,{
+
+headers:{Authorization:`Bearer ${API_KEY}`}
+
+});
+
+const player = await playerReq.json();
+
+document.getElementById("level").innerText=player.games.cs2.skill_level;
+document.getElementById("elo").innerText=player.games.cs2.faceit_elo;
+
+const historyReq = await fetch(`https://open.faceit.com/data/v4/players/${player.player_id}/history?game=cs2&limit=20`,{
+
+headers:{Authorization:`Bearer ${API_KEY}`}
+
+});
+
+const history = await historyReq.json();
+
+let wins=0;
+let losses=0;
+
+let streak=0;
+let lastResult=null;
+
+const today=new Date().toISOString().split("T")[0];
+
+history.items.forEach(match=>{
+
+const date=new Date(match.finished_at*1000).toISOString().split("T")[0];
+
+const winner=match.results.winner;
+const team1=match.teams.faction1.team_id;
+
+const win = winner===team1;
+
+if(date===today){
+
+if(win) wins++;
+else losses++;
+
+}
+
+if(lastResult===null){
+
+lastResult=win;
+streak=1;
+
+}else if(lastResult===win){
+
+streak++;
+
+}else{
+
+return;
+
+}
+
+});
+
+document.getElementById("wins").innerText=wins;
+document.getElementById("losses").innerText=losses;
+
+document.getElementById("streak").innerText=
+(lastResult?"🔥 "+streak+"W":"❄ "+streak+"L");
+
+}
+
+atualizar();
+
+setInterval(atualizar,60000);
+
+</script>
+
+</body>
+</html>
