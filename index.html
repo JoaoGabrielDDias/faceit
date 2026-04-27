@@ -12,50 +12,38 @@ font-family:Segoe UI, Arial;
 }
 
 .container{
-
 display:flex;
 align-items:center;
-gap:20px;
+gap:18px;
 
-background:linear-gradient(90deg,#0b0b0b,#161616);
+background:#0e0e0e;
 
-padding:14px 26px;
+padding:12px 26px;
 border-radius:35px;
 
 color:white;
-box-shadow:0 0 15px rgba(0,0,0,0.5);
-}
-
-.levelWrap{
-position:relative;
-width:60px;
-height:60px;
 }
 
 .levelCircle{
+width:54px;
+height:54px;
 
-width:60px;
-height:60px;
+border-radius:50%;
+border:6px solid #ff5500;
 
-transform:rotate(-90deg);
-}
+display:flex;
+align-items:center;
+justify-content:center;
 
-.levelText{
-
-position:absolute;
-top:50%;
-left:50%;
-
-transform:translate(-50%,-50%);
 font-weight:bold;
 font-size:20px;
-color:#ff5a00;
+
+color:#ff5500;
 }
 
 .elo{
 font-size:32px;
 font-weight:bold;
-letter-spacing:1px;
 }
 
 .win{
@@ -65,14 +53,14 @@ font-size:18px;
 }
 
 .loss{
-color:#ff4040;
+color:#ff3b3b;
 font-weight:bold;
 font-size:18px;
 }
 
 .delta{
-font-weight:bold;
 font-size:18px;
+font-weight:bold;
 }
 
 .positive{
@@ -80,7 +68,7 @@ color:#00ff7b;
 }
 
 .negative{
-color:#ff4040;
+color:#ff3b3b;
 }
 
 </style>
@@ -91,36 +79,7 @@ color:#ff4040;
 
 <div class="container">
 
-<div class="levelWrap">
-
-<svg class="levelCircle">
-
-<circle
-cx="30"
-cy="30"
-r="26"
-stroke="#333"
-stroke-width="6"
-fill="none"
-/>
-
-<circle
-id="progress"
-cx="30"
-cy="30"
-r="26"
-stroke="#ff5a00"
-stroke-width="6"
-fill="none"
-stroke-dasharray="163"
-stroke-dashoffset="163"
-/>
-
-</svg>
-
-<div class="levelText" id="level">-</div>
-
-</div>
+<div class="levelCircle" id="level">-</div>
 
 <div class="elo" id="elo">---</div>
 
@@ -137,90 +96,30 @@ stroke-dashoffset="163"
 const API_KEY="a0c6175c-3592-4494-b2e4-3db54f1ef300";
 const NICK="Moviments";
 
-let lastElo=null;
-
-function calcularProgresso(elo){
-
-const levels=[0,800,950,1100,1250,1400,1550,1700,1850,2000];
-
-let level=1;
-
-for(let i=0;i<levels.length;i++){
-
-if(elo>=levels[i]) level=i+1;
-
-}
-
-let min=levels[level-1]||0;
-let max=levels[level]||elo;
-
-let percent=(elo-min)/(max-min);
-
-return{level,percent}
-
-}
-
 async function atualizar(){
 
+// PLAYER INFO
+
 const playerReq = await fetch(`https://open.faceit.com/data/v4/players?nickname=${NICK}`,{
-
 headers:{Authorization:`Bearer ${API_KEY}`}
-
 });
 
-const player=await playerReq.json();
+const player = await playerReq.json();
 
-const eloAtual=player.games.cs2.faceit_elo;
+document.getElementById("level").innerText =
+player.games.cs2.skill_level;
 
-document.getElementById("elo").innerText=eloAtual;
-
-const lvlData=calcularProgresso(eloAtual);
-
-document.getElementById("level").innerText=lvlData.level;
-
-const circle=163;
-
-document.getElementById("progress").style.strokeDashoffset=
-circle-(circle*lvlData.percent);
+document.getElementById("elo").innerText =
+player.games.cs2.faceit_elo;
 
 
-// delta elo
+// HISTORY
 
-if(lastElo!==null){
-
-let diff=eloAtual-lastElo;
-
-let el=document.getElementById("delta");
-
-if(diff>0){
-
-el.innerText=`(+${diff})`;
-el.className="delta positive";
-
-}else if(diff<0){
-
-el.innerText=`(${diff})`;
-el.className="delta negative";
-
-}else{
-
-el.innerText="(0)";
-}
-
-}
-
-lastElo=eloAtual;
-
-
-// W/L hoje
-
-const historyReq=await fetch(`https://open.faceit.com/data/v4/players/${player.player_id}/history?game=cs2&limit=20`,{
-
+const historyReq = await fetch(`https://open.faceit.com/data/v4/players/${player.player_id}/history?game=cs2&limit=20`,{
 headers:{Authorization:`Bearer ${API_KEY}`}
-
 });
 
-const history=await historyReq.json();
+const history = await historyReq.json();
 
 let wins=0;
 let losses=0;
@@ -236,8 +135,11 @@ if(date===today){
 const winner=match.results.winner;
 const team1=match.teams.faction1.team_id;
 
-if(winner===team1) wins++;
-else losses++;
+if(winner===team1){
+wins++;
+}else{
+losses++;
+}
 
 }
 
@@ -245,6 +147,34 @@ else losses++;
 
 document.getElementById("wins").innerText=wins;
 document.getElementById("losses").innerText=losses;
+
+
+// ÚLTIMA PARTIDA
+
+const lastMatch = history.items[0];
+
+if(lastMatch && lastMatch.stats){
+
+const eloChange = lastMatch.stats["Elo change"] || 0;
+
+let deltaEl = document.getElementById("delta");
+
+if(eloChange>0){
+
+deltaEl.innerText=`(+${eloChange})`;
+deltaEl.className="delta positive";
+
+}else if(eloChange<0){
+
+deltaEl.innerText=`(${eloChange})`;
+deltaEl.className="delta negative";
+
+}else{
+
+deltaEl.innerText="(0)";
+}
+
+}
 
 }
 
