@@ -12,63 +12,62 @@ font-family:Segoe UI, Arial;
 }
 
 .container{
+
 display:flex;
 align-items:center;
-gap:18px;
+gap:12px;
 
-background:#0e0e0e;
+background:#0d0d0d;
 
-padding:12px 26px;
-border-radius:35px;
+padding:8px 16px;
+border-radius:28px;
 
 color:white;
+
+font-size:14px;
 }
 
 .levelCircle{
-width:54px;
-height:54px;
+
+width:36px;
+height:36px;
 
 border-radius:50%;
-border:6px solid #ff5500;
+border:4px solid #ff5500;
 
 display:flex;
 align-items:center;
 justify-content:center;
 
 font-weight:bold;
-font-size:20px;
+font-size:14px;
 
 color:#ff5500;
 }
 
+.name{
+font-weight:bold;
+font-size:14px;
+}
+
 .elo{
-font-size:32px;
+font-size:18px;
 font-weight:bold;
 }
 
 .win{
 color:#00ff7b;
 font-weight:bold;
-font-size:18px;
 }
 
 .loss{
 color:#ff3b3b;
 font-weight:bold;
-font-size:18px;
 }
 
-.delta{
-font-size:18px;
+.kd{
+color:#3aa3ff;
 font-weight:bold;
-}
-
-.positive{
-color:#00ff7b;
-}
-
-.negative{
-color:#ff3b3b;
 }
 
 </style>
@@ -81,13 +80,15 @@ color:#ff3b3b;
 
 <div class="levelCircle" id="level">-</div>
 
+<div class="name" id="name">Player</div>
+
 <div class="elo" id="elo">---</div>
 
-<div class="win">W: <span id="wins">0</span></div>
+<div class="win">W:<span id="wins">0</span></div>
 
-<div class="loss">L: <span id="losses">0</span></div>
+<div class="loss">L:<span id="losses">0</span></div>
 
-<div class="delta" id="delta">(--)</div>
+<div class="kd">KD:<span id="kd">0</span></div>
 
 </div>
 
@@ -98,19 +99,31 @@ const NICK="Moviments";
 
 async function atualizar(){
 
-// PLAYER INFO
-
 const playerReq = await fetch(`https://open.faceit.com/data/v4/players?nickname=${NICK}`,{
 headers:{Authorization:`Bearer ${API_KEY}`}
 });
 
 const player = await playerReq.json();
 
+document.getElementById("name").innerText = player.nickname;
+
 document.getElementById("level").innerText =
 player.games.cs2.skill_level;
 
 document.getElementById("elo").innerText =
 player.games.cs2.faceit_elo;
+
+
+// STATS
+
+const statsReq = await fetch(`https://open.faceit.com/data/v4/players/${player.player_id}/stats/cs2`,{
+headers:{Authorization:`Bearer ${API_KEY}`}
+});
+
+const stats = await statsReq.json();
+
+document.getElementById("kd").innerText =
+stats.lifetime["Average K/D Ratio"];
 
 
 // HISTORY
@@ -147,34 +160,6 @@ losses++;
 
 document.getElementById("wins").innerText=wins;
 document.getElementById("losses").innerText=losses;
-
-
-// ÚLTIMA PARTIDA
-
-const lastMatch = history.items[0];
-
-if(lastMatch && lastMatch.stats){
-
-const eloChange = lastMatch.stats["Elo change"] || 0;
-
-let deltaEl = document.getElementById("delta");
-
-if(eloChange>0){
-
-deltaEl.innerText=`(+${eloChange})`;
-deltaEl.className="delta positive";
-
-}else if(eloChange<0){
-
-deltaEl.innerText=`(${eloChange})`;
-deltaEl.className="delta negative";
-
-}else{
-
-deltaEl.innerText="(0)";
-}
-
-}
 
 }
 
