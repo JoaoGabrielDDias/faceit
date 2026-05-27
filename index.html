@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
 
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>FACEIT LIVE STATS</title>
 
@@ -26,13 +27,17 @@ justify-content:center;
 align-items:center;
 
 padding:12px;
-
 overflow:hidden;
+
 }
+
+/* =========================
+CARD
+========================= */
 
 .card{
 
-width:380px;
+width:390px;
 
 background:
 linear-gradient(145deg,#111111,#1b1b1b);
@@ -41,17 +46,18 @@ border-radius:24px;
 
 padding:18px;
 
-border:1px solid rgba(255,255,255,.06);
+border:
+1px solid rgba(255,255,255,.06);
 
 box-shadow:
 0 0 35px rgba(255,85,0,.18),
-0 8px 40px rgba(0,0,0,.55);
-
-position:relative;
+0 10px 40px rgba(0,0,0,.6);
 
 overflow:hidden;
+position:relative;
 
 color:white;
+
 }
 
 .card::before{
@@ -60,11 +66,11 @@ content:"";
 
 position:absolute;
 
-top:-120px;
-right:-120px;
+top:-130px;
+right:-130px;
 
-width:240px;
-height:240px;
+width:260px;
+height:260px;
 
 background:
 radial-gradient(circle,
@@ -72,6 +78,10 @@ rgba(255,85,0,.25),
 transparent 70%);
 
 }
+
+/* =========================
+HEADER
+========================= */
 
 .header{
 
@@ -85,23 +95,23 @@ z-index:2;
 
 .level{
 
-width:72px;
-height:72px;
+width:74px;
+height:74px;
 
 border-radius:50%;
 
 background:
-linear-gradient(145deg,#ff5500,#ff8c42);
+linear-gradient(145deg,#ff5500,#ff8d45);
 
 display:flex;
 align-items:center;
 justify-content:center;
 
-font-size:28px;
+font-size:30px;
 font-weight:900;
 
 box-shadow:
-0 0 20px rgba(255,85,0,.45);
+0 0 25px rgba(255,85,0,.55);
 
 flex-shrink:0;
 }
@@ -110,31 +120,36 @@ flex-shrink:0;
 
 display:flex;
 flex-direction:column;
-gap:5px;
+gap:4px;
 }
 
 .nickname{
 
 font-size:22px;
 font-weight:800;
-letter-spacing:.3px;
+
+letter-spacing:.4px;
 }
 
 .elo{
 
 font-size:14px;
-color:#c8c8c8;
+color:#cfcfcf;
 }
 
 .elo strong{
-color:#ff8b47;
+color:#ff8d45;
 }
 
 .region{
 
 font-size:12px;
-color:#8d8d8d;
+color:#8c8c8c;
 }
+
+/* =========================
+STATS
+========================= */
 
 .stats{
 
@@ -166,8 +181,6 @@ flex-direction:column;
 align-items:center;
 justify-content:center;
 
-backdrop-filter:blur(5px);
-
 transition:.25s;
 }
 
@@ -185,21 +198,21 @@ font-size:11px;
 
 text-transform:uppercase;
 
+letter-spacing:.6px;
+
 color:#9e9e9e;
 
-margin-bottom:7px;
-
-letter-spacing:.6px;
+margin-bottom:6px;
 }
 
 .value{
 
-font-size:26px;
+font-size:28px;
 font-weight:900;
 }
 
 .win .value{
-color:#00ff9d;
+color:#00ff99;
 }
 
 .loss .value{
@@ -209,6 +222,10 @@ color:#ff4b4b;
 .total .value{
 color:#58a6ff;
 }
+
+/* =========================
+FOOTER
+========================= */
 
 .footer{
 
@@ -232,8 +249,7 @@ display:flex;
 align-items:center;
 gap:6px;
 
-color:#00ff9d;
-
+color:#00ff99;
 font-weight:700;
 }
 
@@ -244,7 +260,7 @@ height:8px;
 
 border-radius:50%;
 
-background:#00ff9d;
+background:#00ff99;
 
 animation:pulse 1.5s infinite;
 }
@@ -268,15 +284,18 @@ opacity:1;
 
 }
 
-.loading{
+.status{
 
 margin-top:14px;
 
 font-size:12px;
 
+text-align:center;
+
 color:#888;
 
-text-align:center;
+position:relative;
+z-index:2;
 }
 
 </style>
@@ -289,7 +308,9 @@ text-align:center;
 
 <div class="header">
 
-<div class="level" id="level">-</div>
+<div class="level" id="level">
+-
+</div>
 
 <div class="player">
 
@@ -366,35 +387,35 @@ LIVE
 
 </div>
 
-<div class="loading" id="status">
-Atualizando dados...
+<div class="status" id="status">
+Conectando FACEIT...
 </div>
 
 </div>
 
 <script>
 
-// =====================================
+// ======================================
 // CONFIG
-// =====================================
+// ======================================
 
 const API_KEY = "a0c6175c-3592-4494-b2e4-3db54f1ef300";
 const NICK = "Moviments";
 
-// =====================================
-// FUNÇÃO PRINCIPAL
-// =====================================
+// ======================================
+// UPDATE
+// ======================================
 
 async function atualizar(){
 
 try{
 
 document.getElementById("status").innerText =
-"Buscando dados FACEIT...";
+"Buscando dados da FACEIT...";
 
-// =====================================
+// ======================================
 // PLAYER
-// =====================================
+// ======================================
 
 const playerReq = await fetch(
 `https://open.faceit.com/data/v4/players?nickname=${NICK}`,
@@ -409,14 +430,14 @@ const player = await playerReq.json();
 if(player.errors){
 
 document.getElementById("status").innerText =
-"Erro ao carregar jogador.";
+"Erro ao buscar jogador.";
 
 return;
 }
 
-// =====================================
-// DADOS PLAYER
-// =====================================
+// ======================================
+// PLAYER INFO
+// ======================================
 
 document.getElementById("name").innerText =
 player.nickname;
@@ -430,12 +451,12 @@ player.games.cs2.faceit_elo;
 document.getElementById("country").innerText =
 `${player.country || "BR"} • CS2`;
 
-// =====================================
-// HISTÓRICO
-// =====================================
+// ======================================
+// HISTORY
+// ======================================
 
 const historyReq = await fetch(
-`https://open.faceit.com/data/v4/players/${player.player_id}/history?game=cs2&limit=30`,
+`https://open.faceit.com/data/v4/players/${player.player_id}/history?game=cs2&limit=20`,
 {
 headers:{
 Authorization:`Bearer ${API_KEY}`
@@ -448,51 +469,67 @@ let wins = 0;
 let losses = 0;
 let total = 0;
 
-// DATA LOCAL
 const hoje =
 new Date().toLocaleDateString("sv-SE");
 
-// =====================================
-// VERIFICA MATCHES DE HOJE
-// =====================================
+// ======================================
+// MATCH LOOP
+// ======================================
 
-history.items.forEach(match=>{
+for(const item of history.items){
 
 const dataPartida =
-new Date(match.finished_at * 1000)
+new Date(item.finished_at * 1000)
 .toLocaleDateString("sv-SE");
 
-if(dataPartida === hoje){
+if(dataPartida !== hoje){
+continue;
+}
 
 total++;
 
+try{
+
+// ======================================
+// MATCH DETAILS
+// ======================================
+
+const detailReq = await fetch(
+`https://open.faceit.com/data/v4/matches/${item.match_id}`,
+{
+headers:{
+Authorization:`Bearer ${API_KEY}`
+}
+});
+
+const detail = await detailReq.json();
+
 let meuTime = null;
 
-// PROCURA O PLAYER NO TIME
-Object.values(match.teams).forEach(team=>{
+// ======================================
+// PROCURA PLAYER
+// ======================================
 
-const encontrou =
-team.players.some(p =>
-p.nickname.toLowerCase() ===
+Object.values(detail.teams).forEach(team=>{
+
+const encontrou = team.players.some(player=>
+player.nickname.toLowerCase() ===
 NICK.toLowerCase()
 );
 
 if(encontrou){
-
 meuTime = team;
-
 }
 
 });
 
-// VALIDA RESULTADO
+// ======================================
+// RESULTADO
+// ======================================
+
 if(meuTime){
 
-const venceu =
-match.results.winner ===
-meuTime.faction_id;
-
-if(venceu){
+if(detail.results.winner === meuTime.faction_id){
 
 wins++;
 
@@ -504,13 +541,17 @@ losses++;
 
 }
 
+}catch(matchError){
+
+console.log("Erro match:",matchError);
+
 }
 
-});
+}
 
-// =====================================
-// ATUALIZA UI
-// =====================================
+// ======================================
+// UI UPDATE
+// ======================================
 
 document.getElementById("wins").innerText =
 wins;
@@ -541,9 +582,9 @@ document.getElementById("status").innerText =
 
 }
 
-// =====================================
+// ======================================
 // START
-// =====================================
+// ======================================
 
 atualizar();
 
